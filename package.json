@@ -1,17 +1,530 @@
-{
-  "name": "mirqah-app",
-  "version": "1.0.0",
-  "description": "تطبيق مِرقاة لمتابعة حلقات تحفيظ القرآن الكريم عبر الإنترنت",
-  "scripts": {
-    "cap:init": "npx cap init Mirqah com.mirqah.app --web-dir=www",
-    "cap:add:android": "npx cap add android",
-    "cap:sync": "npx cap sync android"
-  },
-  "dependencies": {
-    "@capacitor/android": "^6.0.0",
-    "@capacitor/core": "^6.0.0"
-  },
-  "devDependencies": {
-    "@capacitor/cli": "^6.0.0"
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#065f46">
+  <title>مِرقاة - متابعة حلقات القرآن الكريم</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .green-gradient {
+      background: linear-gradient(135deg,#064e3b,#047857,#0f766e);
+    }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .tab-active { background:#047857;color:white; }
+    .tab-normal { background:white;color:#475569;border:1px solid #e2e8f0; }
+    input,select,textarea { max-width:100%; }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col text-slate-800">
+
+<header class="green-gradient text-white shadow-md sticky top-0 z-30">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-2xl font-bold">م</div>
+      <div>
+        <h1 class="font-extrabold text-xl">مِرقاة</h1>
+        <p class="text-xs text-emerald-100">متابعة حلقات القرآن الكريم</p>
+      </div>
+    </div>
+    <button id="logoutBtn" onclick="logout()" class="hidden bg-rose-600 px-4 py-2 rounded-lg text-sm">خروج</button>
+  </div>
+</header>
+
+<main class="flex-1 max-w-5xl w-full mx-auto p-4 py-6">
+
+  <!-- تسجيل الدخول -->
+  <section id="loginView" class="max-w-md mx-auto mt-5">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
+      <div class="flex border-b">
+        <button id="adminTab" onclick="switchLoginTab('admin')" class="flex-1 p-4 font-bold text-sm text-emerald-800 bg-emerald-50">المشرف / المعلم</button>
+        <button id="parentTab" onclick="switchLoginTab('parent')" class="flex-1 p-4 font-bold text-sm text-slate-500">ولي الأمر</button>
+      </div>
+
+      <div id="adminLogin" class="p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-bold mb-2">البريد الإلكتروني</label>
+          <input id="adminEmail" type="email" placeholder="example@email.com" class="w-full border rounded-xl p-3 text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-bold mb-2">كلمة المرور</label>
+          <input id="adminPassword" type="password" placeholder="كلمة المرور" class="w-full border rounded-xl p-3 text-sm">
+        </div>
+        <button onclick="demoLogin()" class="w-full bg-emerald-700 text-white p-3 rounded-xl font-bold">دخول تجريبي للمشرف</button>
+        <p class="text-xs text-amber-700 bg-amber-50 p-3 rounded-lg">هذا دخول تجريبي دون تحقق أمني. لا تستخدمه لحماية بيانات حقيقية.</p>
+      </div>
+
+      <div id="parentLogin" class="hidden p-6 space-y-4">
+        <div class="bg-emerald-50 text-emerald-900 p-3 rounded-xl text-sm">
+          أدخل رمز الطالب الذي حصلت عليه من مشرف الحلقة.
+        </div>
+        <label class="block text-sm font-bold">رمز الطالب</label>
+        <input id="studentCode" placeholder="MRQ-101" class="w-full border rounded-xl p-3 text-center font-bold uppercase">
+        <button onclick="parentLogin()" class="w-full bg-emerald-700 text-white p-3 rounded-xl font-bold">عرض ملف الطالب</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- لوحة المشرف -->
+  <section id="adminView" class="hidden space-y-5">
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+Eeeeee, [11/06/48 10:30 ص]
+<div class="bg-white rounded-xl border p-4">
+        <p class="text-xs text-slate-500">إجمالي الطلاب</p>
+        <p id="totalStudents" class="text-2xl font-extrabold mt-2">0</p>
+      </div>
+      <div class="bg-white rounded-xl border p-4">
+        <p class="text-xs text-slate-500">الحضور اليوم</p>
+        <p id="presentStudents" class="text-2xl font-extrabold text-emerald-600 mt-2">0</p>
+      </div>
+      <div class="bg-white rounded-xl border p-4">
+        <p class="text-xs text-slate-500">سجلات التسميع</p>
+        <p id="totalRecitations" class="text-2xl font-extrabold text-amber-600 mt-2">0</p>
+      </div>
+      <div class="bg-white rounded-xl border p-4">
+        <p class="text-xs text-slate-500">التخزين</p>
+        <p class="text-sm font-bold text-teal-700 mt-3">محلي</p>
+      </div>
+    </div>
+
+    <nav class="flex gap-2 overflow-x-auto pb-2">
+      <button id="nav-attendance" onclick="showSection('attendance')" class="tab-active px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap">الحضور والغياب</button>
+      <button id="nav-recitation" onclick="showSection('recitation')" class="tab-normal px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap">التسميع والمراجعة</button>
+      <button id="nav-students" onclick="showSection('students')" class="tab-normal px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap">الطلاب</button>
+      <button id="nav-reports" onclick="showSection('reports')" class="tab-normal px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap">التقارير</button>
+    </nav>
+
+    <!-- الحضور -->
+    <div id="sec-attendance" class="bg-white rounded-2xl border p-5 space-y-4">
+      <div class="flex justify-between items-center">
+        <h2 class="font-bold">تحضير الطلاب اليوم</h2>
+        <span id="todayDate" class="text-xs text-slate-500"></span>
+      </div>
+      <div id="attendanceList" class="divide-y"></div>
+    </div>
+
+    <!-- التسميع -->
+    <div id="sec-recitation" class="hidden bg-white rounded-2xl border p-5 space-y-4">
+      <h2 class="font-bold">إضافة تسميع أو مراجعة</h2>
+
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm mb-2 font-bold">الطالب</label>
+          <select id="recStudent" class="w-full border rounded-xl p-3"></select>
+        </div>
+        <div>
+          <label class="block text-sm mb-2 font-bold">النوع</label>
+          <select id="recType" class="w-full border rounded-xl p-3">
+            <option>حفظ جديد</option>
+            <option>مراجعة</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm mb-2 font-bold">السورة</label>
+          <select id="recSurah" class="w-full border rounded-xl p-3"></select>
+        </div>
+        <div>
+          <label class="block text-sm mb-2 font-bold">التقدير</label>
+          <select id="recGrade" class="w-full border rounded-xl p-3">
+            <option>ممتاز</option>
+            <option>جيد جداً</option>
+            <option>جيد</option>
+            <option>يحتاج إعادة</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm mb-2 font-bold">من آية</label>
+          <input id="recFrom" type="number" min="1" value="1" class="w-full border rounded-xl p-3">
+        </div>
+        <div>
+          <label class="block text-sm mb-2 font-bold">إلى آية</label>
+          <input id="recTo" type="number" min="1" value="10" class="w-full border rounded-xl p-3">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-sm mb-2 font-bold">ملاحظة</label>
+          <input id="recNote" class="w-full border rounded-xl p-3" placeholder="ملاحظات المعلم...">
+        </div>
+      </div>
+
+      <button onclick="addRecitation()" class="bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold w-full sm:w-auto">حفظ التسميع</button>
+
+      <div class="border-t pt-4">
+        <h3 class="font-bold mb-3">آخر السجلات</h3>
+        <div id="recitationHistory" class="space-y-2"></div>
+      </div>
+    </div>
+
+Eeeeee, [11/06/48 10:30 ص]
+<!-- الطلاب -->
+    <div id="sec-students" class="hidden bg-white rounded-2xl border p-5 space-y-4">
+      <h2 class="font-bold">إدارة الطلاب</h2>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <input id="newStudentName" class="border rounded-xl p-3" placeholder="اسم الطالب">
+        <input id="newStudentLevel" class="border rounded-xl p-3" placeholder="المستوى أو الجزء">
+      </div>
+      <button onclick="addStudent()" class="bg-emerald-700 text-white px-5 py-3 rounded-xl font-bold">+ إضافة طالب</button>
+      <div id="studentsList" class="divide-y"></div>
+    </div>
+
+    <!-- التقارير -->
+    <div id="sec-reports" class="hidden bg-white rounded-2xl border p-5 space-y-4">
+      <h2 class="font-bold">التقرير الأسبوعي</h2>
+      <p class="text-xs text-slate-500">يعرض السجلات المسجلة خلال آخر سبعة أيام.</p>
+      <pre id="weeklyReport" class="whitespace-pre-wrap bg-slate-50 border rounded-xl p-4 text-sm font-sans"></pre>
+      <button onclick="copyReport()" class="bg-emerald-700 text-white px-5 py-3 rounded-xl font-bold">نسخ التقرير</button>
+    </div>
+
+  </section>
+
+  <!-- واجهة ولي الأمر -->
+  <section id="parentView" class="hidden max-w-2xl mx-auto space-y-4">
+    <div class="bg-white border rounded-2xl p-5">
+      <span class="text-xs text-emerald-700 font-bold">ملف الطالب</span>
+      <h2 id="parentName" class="text-xl font-extrabold mt-2"></h2>
+      <p id="parentLevel" class="text-sm text-slate-500 mt-1"></p>
+      <p id="parentCode" class="text-sm text-emerald-700 mt-2"></p>
+      <p id="parentAttendance" class="text-sm mt-2"></p>
+    </div>
+    <div class="bg-white border rounded-2xl p-5">
+      <h3 class="font-bold mb-4">سجل الحفظ والمراجعة</h3>
+      <div id="parentRecords" class="space-y-3"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="text-center text-xs text-slate-400 p-5">
+  مِرقاة - رفيق حلقات القرآن الكريم
+</footer>
+
+<script>
+"use strict";
+
+const SURAHS = [
+"الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام",
+"الأعراف","الأنفال","التوبة","يونس","هود","يوسف","الرعد",
+"إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه",
+"الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء",
+"النمل","القصص","العنكبوت","الروم","لقمان","السجدة",
+"الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر",
+"فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف",
+"محمد","الفتح","الحجرات","ق","الذاريات","الطور","النجم",
+"القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر",
+"الممتحنة","الصف","الجمعة","المنافقون","التغابن","الطلاق",
+"التحريم","الملك","القلم","الحاقة","المعارج","نوح","الجن",
+"المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ",
+"النازعات","عبس","التكوير","الانفطار","المطففين","الانشقاق",
+"البروج","الطارق","الأعلى","الغاشية","الفجر","البلد",
+"الشمس","الليل","الضحى","الشرح","التين","العلق","القدر",
+"البينة","الزلزلة","العاديات","القارعة","التكاثر","العصر",
+"الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون",
+"النصر","المسد","الإخلاص","الفلق","الناس"
+];
+
+const defaultData = {
+  students: [
+    {id:1,name:"أحمد عبدالله السالم",level:"جزء عمّ",code:"MRQ-101",attendance:"حاضر"},
+    {id:2,name:"عمر خالد المنصور",level:"جزء تبارك",code:"MRQ-102",attendance:"حاضر"},
+    {id:3,name:"يوسف إبراهيم الحربي",level:"جزء عمّ",code:"MRQ-103",attendance:"غائب"}
+  ],
+  recitations: [
+    {id:101,studentId:1,type:"حفظ جديد",surah:"النبأ",from:1,to:20,grade:"ممتاز",note:"تلاوة متقنة",date:new Date().toISOString()},
+    {id:102,studentId:2,type:"مراجعة",surah:"الملك",from:1,to:30,grade:"جيد جداً",note:"مراجعة كاملة",date:new Date().toISOString()}
+  ]
+};
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem("mirqah_data");
+    if (!saved) return structuredClone(defaultData);
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed.students) || !Array.isArray(parsed.recitations)) {
+      return structuredClone(defaultData);
+    }
+    return parsed;
+  } catch (error) {
+    console.error("تعذر تحميل البيانات:", error);
+    return structuredClone(defaultData);
   }
 }
+
+let state = loadData();
+let currentParentId = null;
+
+Eeeeee, [11/06/48 10:30 ص]
+function saveState() {
+  try {
+    localStorage.setItem("mirqah_data", JSON.stringify(state));
+    renderAll();
+  } catch (error) {
+    alert("تعذر حفظ البيانات على الجهاز.");
+    console.error(error);
+  }
+}
+
+function safeText(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[char]);
+}
+
+function formatDate(date) {
+  return new Date(date).toLocaleDateString("ar-SA");
+}
+
+function switchLoginTab(tab) {
+  const admin = tab === "admin";
+  document.getElementById("adminLogin").classList.toggle("hidden",!admin);
+  document.getElementById("parentLogin").classList.toggle("hidden",admin);
+  document.getElementById("adminTab").className =
+    admin ? "flex-1 p-4 font-bold text-sm text-emerald-800 bg-emerald-50" :
+    "flex-1 p-4 font-bold text-sm text-slate-500";
+  document.getElementById("parentTab").className =
+    !admin ? "flex-1 p-4 font-bold text-sm text-emerald-800 bg-emerald-50" :
+    "flex-1 p-4 font-bold text-sm text-slate-500";
+}
+
+function demoLogin() {
+  document.getElementById("loginView").classList.add("hidden");
+  document.getElementById("parentView").classList.add("hidden");
+  document.getElementById("adminView").classList.remove("hidden");
+  document.getElementById("logoutBtn").classList.remove("hidden");
+  showSection("attendance");
+  renderAll();
+}
+
+function logout() {
+  document.getElementById("adminView").classList.add("hidden");
+  document.getElementById("parentView").classList.add("hidden");
+  document.getElementById("loginView").classList.remove("hidden");
+  document.getElementById("logoutBtn").classList.add("hidden");
+  currentParentId = null;
+}
+
+function showSection(section) {
+  ["attendance","recitation","students","reports"].forEach(name => {
+    document.getElementById("sec-" + name).classList.toggle("hidden",name !== section);
+    document.getElementById("nav-" + name).className =
+      name === section ?
+      "tab-active px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap" :
+      "tab-normal px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap";
+  });
+  if (section === "reports") renderReport();
+}
+
+function parentLogin() {
+  const code = document.getElementById("studentCode").value.trim().toUpperCase();
+  const student = state.students.find(s => s.code.toUpperCase() === code);
+
+  if (!student) {
+    alert("رمز الطالب غير صحيح.");
+    return;
+  }
+
+  currentParentId = student.id;
+  document.getElementById("loginView").classList.add("hidden");
+  document.getElementById("adminView").classList.add("hidden");
+  document.getElementById("parentView").classList.remove("hidden");
+  document.getElementById("logoutBtn").classList.remove("hidden");
+
+  renderParent();
+}
+
+function renderParent() {
+  const student = state.students.find(s => s.id === currentParentId);
+  if (!student) return logout();
+
+  document.getElementById("parentName").textContent = student.name;
+  document.getElementById("parentLevel").textContent = "المستوى: " + student.level;
+  document.getElementById("parentCode").textContent = "رمز الطالب: " + student.code;
+  document.getElementById("parentAttendance").textContent = "حالة الحضور: " + student.attendance;
+
+  const records = state.recitations.filter(r => r.studentId === student.id);
+  document.getElementById("parentRecords").innerHTML = records.length ?
+    records.map(r => 
+      <div class="border rounded-xl p-3 bg-slate-50">
+        <p class="font-bold text-sm">${safeText(r.type)} - سورة ${safeText(r.surah)}</p>
+        <p class="text-xs text-slate-600 mt-1">من آية ${safeText(r.from)} إلى ${safeText(r.to)}</p>
+        <p class="text-xs text-emerald-700 mt-1">التقدير: ${safeText(r.grade)}</p>
+        <p class="text-xs text-slate-500 mt-1">${safeText(r.note || "لا توجد ملاحظات")}</p>
+        <p class="text-xs text-slate-400 mt-1">${formatDate(r.date)}</p>
+      </div>
+    ).join("") :
+    '<p class="text-sm text-slate-400">لا توجد سجلات حتى الآن.</p>';
+}
+
+Eeeeee, [11/06/48 10:30 ص]
+function setAttendance(id,status) {
+  const student = state.students.find(s => s.id === id);
+  if (!student) return;
+  student.attendance = status;
+  saveState();
+}
+
+function addStudent() {
+  const name = document.getElementById("newStudentName").value.trim();
+  const level = document.getElementById("newStudentLevel").value.trim() || "غير محدد";
+
+  if (!name) {
+    alert("يرجى كتابة اسم الطالب.");
+    return;
+  }
+
+  const nextNumber = Math.max(
+    100,
+    ...state.students.map(s => Number(String(s.code).replace("MRQ-","")) || 100)
+  ) + 1;
+
+  state.students.push({
+    id:Date.now(),
+    name,
+    level,
+    code:"MRQ-" + nextNumber,
+    attendance:"لم يحضر بعد"
+  });
+
+  document.getElementById("newStudentName").value = "";
+  document.getElementById("newStudentLevel").value = "";
+  saveState();
+  alert("تمت إضافة الطالب بنجاح. رمزه: MRQ-" + nextNumber);
+}
+
+function addRecitation() {
+  const studentId = Number(document.getElementById("recStudent").value);
+  const type = document.getElementById("recType").value;
+  const surah = document.getElementById("recSurah").value;
+  const grade = document.getElementById("recGrade").value;
+  const from = Number(document.getElementById("recFrom").value);
+  const to = Number(document.getElementById("recTo").value);
+  const note = document.getElementById("recNote").value.trim();
+
+  if (!studentId) {
+    alert("أضف طالباً أولاً.");
+    return;
+  }
+
+  if (!from  !to  from < 1 || to < from) {
+    alert("يرجى التأكد من أرقام الآيات.");
+    return;
+  }
+
+  state.recitations.unshift({
+    id:Date.now(),studentId,type,surah,from,to,grade,note,
+    date:new Date().toISOString()
+  });
+
+  document.getElementById("recNote").value = "";
+  saveState();
+  alert("تم حفظ سجل التسميع.");
+}
+
+function renderAll() {
+  document.getElementById("todayDate").textContent =
+    new Date().toLocaleDateString("ar-SA");
+
+  document.getElementById("totalStudents").textContent = state.students.length;
+  document.getElementById("presentStudents").textContent =
+    state.students.filter(s => s.attendance === "حاضر").length;
+  document.getElementById("totalRecitations").textContent = state.recitations.length;
+
+  document.getElementById("attendanceList").innerHTML = state.students.map(s => 
+    <div class="py-3 flex items-center justify-between gap-2">
+      <div>
+        <p class="font-bold text-sm">${safeText(s.name)}</p>
+        <p class="text-xs text-slate-400">${safeText(s.level)}</p>
+        <p class="text-xs mt-1 text-slate-500">${safeText(s.code)}</p>
+      </div>
+      <div class="flex gap-1">
+        <button onclick="setAttendance(${s.id},'حاضر')"
+          class="px-3 py-2 rounded-lg text-xs font-bold ${s.attendance === "حاضر" ? "bg-emerald-600 text-white" : "bg-slate-100"}">حاضر</button>
+        <button onclick="setAttendance(${s.id},'غائب')"
+          class="px-3 py-2 rounded-lg text-xs font-bold ${s.attendance === "غائب" ? "bg-rose-600 text-white" : "bg-slate-100"}">غائب</button>
+      </div>
+    </div>
+  ).join("") || '<p class="py-4 text-sm text-slate-400">لا يوجد طلاب.</p>';
+
+  document.getElementById("recStudent").innerHTML = state.students.map(s =>
+    <option value="${s.id}">${safeText(s.name)}</option>
+  ).join("");
+
+  document.getElementById("studentsList").innerHTML = state.students.map(s => 
+    <div class="py-3 flex items-center justify-between gap-2">
+      <div>
+        <p class="font-bold text-sm">${safeText(s.name)}</p>
+        <p class="text-xs text-slate-500">${safeText(s.level)}</p>
+      </div>
+      <span class="text-xs font-bold bg-amber-50 text-amber-900 px-3 py-2 rounded-lg">${safeText(s.code)}</span>
+    </div>
+  ).join("") || '<p class="py-4 text-sm text-slate-400">لا يوجد طلاب.</p>';
+
+  document.getElementById("recitationHistory").innerHTML =
+    state.recitations.slice(0,10).map(r => {
+
+Eeeeee, [11/06/48 10:30 ص]
+const student = state.students.find(s => s.id === r.studentId);
+      return 
+        <div class="border rounded-xl p-3">
+          <p class="font-bold text-sm">${safeText(student ? student.name : "طالب")} - ${safeText(r.type)}</p>
+          <p class="text-xs text-slate-600 mt-1">سورة ${safeText(r.surah)}، من ${safeText(r.from)} إلى ${safeText(r.to)}</p>
+          <p class="text-xs text-emerald-700 mt-1">${safeText(r.grade)}</p>
+          <p class="text-xs text-slate-400 mt-1">${formatDate(r.date)}</p>
+        </div>
+      ;
+    }).join("") || '<p class="text-sm text-slate-400">لا توجد سجلات.</p>';
+
+  if (currentParentId !== null) renderParent();
+}
+
+function renderReport() {
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const lines = state.students.map(s => {
+    const records = state.recitations.filter(r =>
+      r.studentId === s.id && new Date(r.date).getTime() >= weekAgo
+    );
+    const details = records.length ?
+      records.map(r => ${r.type}: سورة ${r.surah} (${r.from}-${r.to}) - ${r.grade}).join(" | ") :
+      "لا توجد سجلات خلال الأسبوع";
+
+    return • ${s.name}\n  الحضور: ${s.attendance}\n  ${details};
+  });
+
+  document.getElementById("weeklyReport").textContent =
+    تقرير حلقة مِرقاة الأسبوعي\nالتاريخ: ${new Date().toLocaleDateString("ar-SA")}\n\n${lines.join("\n\n")};
+}
+
+async function copyReport() {
+  const report = document.getElementById("weeklyReport").textContent;
+  try {
+    await navigator.clipboard.writeText(report);
+    alert("تم نسخ التقرير.");
+  } catch (error) {
+    alert("تعذر النسخ تلقائياً. حدد التقرير وانسخه يدوياً.");
+  }
+}
+
+function init() {
+  const select = document.getElementById("recSurah");
+  select.innerHTML = SURAHS.map(s =>
+    <option value="${s}">سورة ${s}</option>
+  ).join("");
+  renderAll();
+}
+
+init();
+</script>
+
+</body>
+</html>
