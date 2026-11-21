@@ -1,468 +1,54 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>مرتلّة — منصّة تلاوة القرآن الكريم</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
-</head>
-  <style>
-    body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
-    .gold-gradient { background: linear-gradient(135deg, #065f46 0%, #047857 60%, #0d9488 100%); }
-  </style>
-</head>
-<body class="text-slate-800 min-h-screen flex flex-col">
-
-  <!-- Top Navbar -->
-  <header class="gold-gradient text-white shadow-md sticky top-0 z-30">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center font-extrabold text-xl border border-white/25">م</div>
-        <div>
-          <h1 class="font-extrabold text-lg leading-tight">مِرقاة</h1>
-          <p class="text-xs text-emerald-100">متابعة حلقات القرآن الكريم</p>
+const student = state.students.find(s => s.id === r.studentId);
+      return 
+        <div class="border rounded-xl p-3">
+          <p class="font-bold text-sm">${safeText(student ? student.name : "طالب")} - ${safeText(r.type)}</p>
+          <p class="text-xs text-slate-600 mt-1">سورة ${safeText(r.surah)}، من ${safeText(r.from)} إلى ${safeText(r.to)}</p>
+          <p class="text-xs text-emerald-700 mt-1">${safeText(r.grade)}</p>
+          <p class="text-xs text-slate-400 mt-1">${formatDate(r.date)}</p>
         </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button onclick="openFirebaseModal()" class="text-xs bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-lg border border-white/20 transition">
-          ☁️ الربط السحابي
-        </button>
-        <button id="logoutBtn" onclick="logout()" class="hidden text-xs bg-rose-600/90 hover:bg-rose-600 px-3 py-1.5 rounded-lg transition">
-          خروج
-        </button>
-      </div>
-    </div>
-  </header>
+      ;
+    }).join("") || '<p class="text-sm text-slate-400">لا توجد سجلات.</p>';
 
-  <!-- Main Container -->
-  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
+  if (currentParentId !== null) renderParent();
+}
 
-    <!-- LOGIN SCREEN -->
-    <section id="loginView" class="max-w-md mx-auto mt-4">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="flex border-b border-slate-200">
-          <button id="tabAdminBtn" onclick="switchLoginTab('admin')" class="flex-1 py-3.5 font-bold text-sm text-emerald-800 border-b-2 border-emerald-700 bg-emerald-50/50">
-            دخول المشرف / المعلم
-          </button>
-          <button id="tabParentBtn" onclick="switchLoginTab('parent')" class="flex-1 py-3.5 font-bold text-sm text-slate-500 hover:text-slate-700">
-            ولي الأمر / الطالب
-          </button>
-        </div>
+function renderReport() {
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const lines = state.students.map(s => {
+    const records = state.recitations.filter(r =>
+      r.studentId === s.id && new Date(r.date).getTime() >= weekAgo
+    );
+    const details = records.length ?
+      records.map(r => ${r.type}: سورة ${r.surah} (${r.from}-${r.to}) - ${r.grade}).join(" | ") :
+      "لا توجد سجلات خلال الأسبوع";
 
-        <!-- Admin Login Form -->
-        <div id="adminLoginForm" class="p-6 space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">البريد الإلكتروني</label>
-            <input id="adminEmail" type="email" placeholder="supervisor@mirqah.app" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-emerald-600 text-sm" />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">كلمة المرور</label>
-            <input id="adminPass" type="password" placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-emerald-600 text-sm" />
-          </div>
-          <button onclick="loginAdmin()" class="w-full py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm shadow-sm transition">
-            تسجيل الدخول كمشرف
-          </button>
-          <div class="relative flex py-1 items-center">
-            <div class="flex-grow border-t border-slate-200"></div>
-            <span class="flex-shrink mx-3 text-xs text-slate-400">أو للمعاينة السريعة</span>
-            <div class="flex-grow border-t border-slate-200"></div>
-          </div>
-          <button onclick="demoAdminLogin()" class="w-full py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs transition">
-            ⚡ تجربة فورية كمشرف الحلقة
-          </button>
-        </div>
+    return • ${s.name}\n  الحضور: ${s.attendance}\n  ${details};
+  });
 
-        <!-- Parent Login Form -->
-        <div id="parentLoginForm" class="p-6 space-y-4 hidden">
-          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900">
-            أدخل <strong>رمز الطالب</strong> المسلّم لك من مشرف الحلقة للاطلاع على الحضور والتسميع والتقرير الأسبوعي.
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">رمز الطالب</label>
-            <input id="studentCodeInput" type="text" placeholder="مثال: MRQ-101" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-emerald-600 text-sm uppercase text-center font-bold tracking-wider" />
-          </div>
-          <button onclick="loginParent()" class="w-full py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm shadow-sm transition">
-            عرض ملف الطالب
-          </button>
-          <p class="text-center text-xs text-slate-400">رموز تجريبية: <span class="font-mono text-slate-600">MRQ-101</span> أو <span class="font-mono text-slate-600">MRQ-102</span></p>
-        </div>
-      </div>
-    </section>
+  document.getElementById("weeklyReport").textContent =
+    تقرير حلقة مِرقاة الأسبوعي\nالتاريخ: ${new Date().toLocaleDateString("ar-SA")}\n\n${lines.join("\n\n")};
+}
 
-    <!-- ADMIN DASHBOARD -->
-    <section id="adminView" class="hidden space-y-6">
-      <!-- Stats Row -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-xs text-slate-500">إجمالي الطلاب</p>
-          <p id="statTotal" class="text-2xl font-extrabold text-slate-800 mt-1">0</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-xs text-slate-500">الحضور اليوم</p>
-          <p id="statPresent" class="text-2xl font-extrabold text-emerald-600 mt-1">0</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-xs text-slate-500">جلسات التسميع</p>
-          <p id="statRecitations" class="text-2xl font-extrabold text-amber-600 mt-1">0</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-xs text-slate-500">حالة الاتصال</p>
-          <p id="syncStatusBadge" class="text-sm font-bold text-teal-700 mt-2">محلي (جاهز للربط)</p>
-        </div>
-      </div>
+async function copyReport() {
+  const report = document.getElementById("weeklyReport").textContent;
+  try {
+    await navigator.clipboard.writeText(report);
+    alert("تم نسخ التقرير.");
+  } catch (error) {
+    alert("تعذر النسخ تلقائياً. حدد التقرير وانسخه يدوياً.");
+  }
+}
 
-      <!-- Navigation Tabs -->
-      <div class="flex gap-2 overflow-x-auto pb-1">
-        <button onclick="switchAdminSection('attendance')" id="nav-attendance" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-700 text-white whitespace-nowrap">📋 الحضور والغياب</button>
-        <button onclick="switchAdminSection('recitation')" id="nav-recitation" class="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 whitespace-nowrap">📖 التسميع والمراجعة</button>
-        <button onclick="switchAdminSection('students')" id="nav-students" class="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 whitespace-nowrap">👥 الطلاب والرموز</button>
-        <button onclick="switchAdminSection('reports')" id="nav-reports" class="px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 whitespace-nowrap">📊 التقارير الأسبوعية</button>
-      </div>
+function init() {
+  const select = document.getElementById("recSurah");
+  select.innerHTML = SURAHS.map(s =>
+    <option value="${s}">سورة ${s}</option>
+  ).join("");
+  renderAll();
+}
 
-      <!-- Section 1: Attendance -->
-      <div id="sec-attendance" class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="font-bold text-base">تحضير طلاب الحلقة اليوم</h2>
-          <span id="todayDateLabel" class="text-xs text-slate-500"></span>
-        </div>
-        <div id="attendanceList" class="divide-y divide-slate-100"></div>
-      </div>
+init();
+</script>
 
-      <!-- Section 2: Recitation -->
-      <div id="sec-recitation" class="hidden bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
-        <h2 class="font-bold text-base">تسجيل تسميع / مراجعة جديدة</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">الطالب</label>
-            <select id="recStudent" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">النوع</label>
-            <select id="recType" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm">
-              <option value="حفظ جديد">حفظ جديد</option>
-              <option value="مراجعة">مراجعة</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">السورة</label>
-            <select id="recSurah" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm"></select>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">من آية</label>
-              <input id="recFrom" type="number" min="1" value="1" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">إلى آية</label>
-              <input id="recTo" type="number" min="1" value="10" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">التقدير</label>
-            <select id="recGrade" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm">
-              <option value="ممتاز">ممتاز</option>
-              <option value="جيد جداً">جيد جداً</option>
-              <option value="جيد">جيد</option>
-              <option value="يحتاج إعادة">يحتاج إعادة</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">ملاحظة</label>
-            <input id="recNote" type="text" placeholder="ملاحظة للمراجعة أو التجويد..." class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" />
-          </div>
-        </div>
-        <button onclick="addRecitation()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm">
-          حفظ السجل
-        </button>
-
-        <div class="pt-4 border-t border-slate-100">
-          <h3 class="font-bold text-sm text-slate-700 mb-3">آخر السجلات</h3>
-          <div id="recitationHistory" class="space-y-2"></div>
-        </div>
-      </div>
-
-      <!-- Section 3: Students -->
-      <div id="sec-students" class="hidden bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
-        <h2 class="font-bold text-base">إدارة الطلاب ورموز أولياء الأمور</h2>
-        <div class="flex flex-col sm:flex-row gap-2">
-          <input id="newStudentName" type="text" placeholder="اسم الطالب الثلاثي..." class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
-          <input id="newStudentLevel" type="text" placeholder="المستوى / الجزء الحالي..." class="sm:w-48 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
-          <button onclick="addStudent()" class="px-5 py-2.5 rounded-xl bg-emerald-700 text-white font-bold text-sm">+ إضافة طالب</button>
-        </div>
-        <div id="studentsList" class="divide-y divide-slate-100"></div>
-      </div>
-
-      <!-- Section 4: Reports -->
-      <div id="sec-reports" class="hidden bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="font-bold text-base">التقرير الأسبوعي الجاهز للمشاركة</h2>
-          <button onclick="copyWeeklyReport()" class="px-3.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
-            📋 نسخ التقرير
-          </button>
-        </div>
-        <pre id="weeklyReportBox" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs leading-relaxed whitespace-pre-wrap font-sans text-slate-700"></pre>
-      </div>
-    </section>
-
-    <!-- PARENT VIEW (READ-ONLY) -->
-    <section id="parentView" class="hidden max-w-2xl mx-auto space-y-4">
-      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">واجهة ولي الأمر (للمشاهدة فقط)</span>
-            <h2 id="pStudentName" class="text-xl font-extrabold text-slate-800 mt-2"></h2>
-            <p id="pStudentMeta" class="text-xs text-slate-500 mt-0.5"></p>
-          </div>
-          <div class="text-center bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
-            <p class="text-[11px] text-slate-400">رمز المتابعة</p>
-            <p id="pStudentCode" class="font-mono font-bold text-sm text-emerald-700"></p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
-        <h3 class="font-bold text-sm text-slate-700">سجل التسميع والمراجعة</h3>
-        <div id="pRecitationsList" class="space-y-2"></div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Firebase Config Modal -->
-  <div id="firebaseModal" class="fixed inset-0 bg-slate-900/50 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-xl">
-      <h3 class="font-bold text-base">ربط قاعدة البيانات السحابية (Firebase)</h3>
-      <p class="text-xs text-slate-500">الصق كائن إعدادات <code>firebaseConfig</code> بصيغة JSON لتفعيل المزامنة الحية عبر الإنترنت بين جميع الأجهزة.</p>
-      <textarea id="firebaseConfigInput" rows="5" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "..."}' class="w-full p-3 rounded-xl border border-slate-300 font-mono text-xs text-left" dir="ltr"></textarea>
-      <div class="flex justify-end gap-2">
-        <button onclick="closeFirebaseModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">إلغاء</button>
-        <button onclick="saveFirebaseConfig()" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-700 text-white">حفظ وتفعيل</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const SURAHS = ["الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس","هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه","الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم","لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر","فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق","الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة","الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج","نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس","التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد","الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات","القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر","المسد","الإخلاص","الفلق","الناس"];
-
-    const defaultData = {
-      students: [
-        { id: 1, name: "أحمد عبدالله السالم", level: "جزء عمّ", code: "MRQ-101", attendance: "حاضر" },
-        { id: 2, name: "عمر خالد المنصور", level: "جزء تبارك", code: "MRQ-102", attendance: "حاضر" },
-        { id: 3, name: "يوسف إبراهيم الحربي", level: "سورة البقرة", code: "MRQ-103", attendance: "غائب" }
-      ],
-      recitations: [
-        { id: 101, studentId: 1, type: "حفظ جديد", surah: "النبأ", from: 1, to: 20, grade: "ممتاز", note: "تلاوة متقنة", date: new Date().toLocaleDateString('ar-SA') },
-        { id: 102, studentId: 2, type: "مراجعة", surah: "الملك", from: 1, to: 30, grade: "جيد جداً", note: "مراجعة كاملة للسورة", date: new Date().toLocaleDateString('ar-SA') }
-      ]
-    };
-
-    let state = JSON.parse(localStorage.getItem('mirqah_data')) || defaultData;
-
-    function saveState() {
-      localStorage.setItem('mirqah_data', JSON.stringify(state));
-      renderAll();
-    }
-
-    function init() {
-      document.getElementById('todayDateLabel').textContent = new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const surahSelect = document.getElementById('recSurah');
-      SURAHS.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s; opt.textContent = "سورة " + s;
-        surahSelect.appendChild(opt);
-      });
-      if (localStorage.getItem('mirqah_firebase')) {
-        document.getElementById('syncStatusBadge').textContent = "☁️ متصل بالسحابة";
-      }
-      renderAll();
-    }
-
-    function switchLoginTab(tab) {
-      const isAdmin = tab === 'admin';
-      document.getElementById('adminLoginForm').classList.toggle('hidden', !isAdmin);
-      document.getElementById('parentLoginForm').classList.toggle('hidden', isAdmin);
-      document.getElementById('tabAdminBtn').className = isAdmin
-        ? "flex-1 py-3.5 font-bold text-sm text-emerald-800 border-b-2 border-emerald-700 bg-emerald-50/50"
-        : "flex-1 py-3.5 font-bold text-sm text-slate-500 hover:text-slate-700";
-      document.getElementById('tabParentBtn').className = !isAdmin
-        ? "flex-1 py-3.5 font-bold text-sm text-emerald-800 border-b-2 border-emerald-700 bg-emerald-50/50"
-        : "flex-1 py-3.5 font-bold text-sm text-slate-500 hover:text-slate-700";
-    }
-
-    function loginAdmin() {
-      const email = document.getElementById('adminEmail').value.trim();
-      if (!email) return alert("يرجى إدخال البريد الإلكتروني أو استخدام الدخول التجريبي.");
-      demoAdminLogin();
-    }
-
-    function demoAdminLogin() {
-      document.getElementById('loginView').classList.add('hidden');
-      document.getElementById('adminView').classList.remove('hidden');
-      document.getElementById('logoutBtn').classList.remove('hidden');
-      renderAll();
-    }
-
-    function loginParent() {
-      const code = document.getElementById('studentCodeInput').value.trim().toUpperCase();
-      const student = state.students.find(s => s.code === code);
-      if (!student) return alert("رمز الطالب غير صحيح. جرب MRQ-101");
-      document.getElementById('loginView').classList.add('hidden');
-      document.getElementById('parentView').classList.remove('hidden');
-      document.getElementById('logoutBtn').classList.remove('hidden');
-
-      document.getElementById('pStudentName').textContent = student.name;
-      document.getElementById('pStudentMeta').textContent = `المستوى: ${student.level} • حالة الحضور اليوم: ${student.attendance}`;
-      document.getElementById('pStudentCode').textContent = student.code;
-
-      const recs = state.recitations.filter(r => r.studentId === student.id);
-      const list = document.getElementById('pRecitationsList');
-      list.innerHTML = recs.length ? recs.map(r => `
-        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-          <div>
-            <p class="font-bold text-sm text-slate-800">${r.type}: سورة ${r.surah} (${r.from} - ${r.to})</p>
-            <p class="text-xs text-slate-500 mt-0.5">${r.note || 'بدون ملاحظات'} • ${r.date}</p>
-          </div>
-          <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800">${r.grade}</span>
-        </div>
-      `).join('') : '<p class="text-xs text-slate-400">لا توجد سجلات تسميع مسجلة بعد.</p>';
-    }
-
-    function logout() {
-      document.getElementById('adminView').classList.add('hidden');
-      document.getElementById('parentView').classList.add('hidden');
-      document.getElementById('logoutBtn').classList.add('hidden');
-      document.getElementById('loginView').classList.remove('hidden');
-    }
-
-    function switchAdminSection(sec) {
-      ['attendance','recitation','students','reports'].forEach(s => {
-        document.getElementById('sec-' + s).classList.toggle('hidden', s !== sec);
-        document.getElementById('nav-' + s).className = s === sec
-          ? "px-4 py-2 rounded-xl text-xs font-bold bg-emerald-700 text-white whitespace-nowrap"
-          : "px-4 py-2 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 whitespace-nowrap";
-      });
-    }
-
-    function setAttendance(id, status) {
-      const st = state.students.find(s => s.id === id);
-      if (st) { st.attendance = status; saveState(); }
-    }
-
-    function addStudent() {
-      const name = document.getElementById('newStudentName').value.trim();
-      const level = document.getElementById('newStudentLevel').value.trim() || "جزء عمّ";
-      if (!name) return;
-      const code = "MRQ-" + (100 + state.students.length + 1);
-      state.students.push({ id: Date.now(), name, level, code, attendance: "حاضر" });
-      document.getElementById('newStudentName').value = "";
-      document.getElementById('newStudentLevel').value = "";
-      saveState();
-    }
-
-    function addRecitation() {
-      const studentId = Number(document.getElementById('recStudent').value);
-      const type = document.getElementById('recType').value;
-      const surah = document.getElementById('recSurah').value;
-      const from = document.getElementById('recFrom').value;
-      const to = document.getElementById('recTo').value;
-      const grade = document.getElementById('recGrade').value;
-      const note = document.getElementById('recNote').value.trim();
-      if (!studentId) return;
-      state.recitations.unshift({
-        id: Date.now(), studentId, type, surah, from, to, grade, note,
-        date: new Date().toLocaleDateString('ar-SA')
-      });
-      document.getElementById('recNote').value = "";
-      saveState();
-    }
-
-    function renderAll() {
-      document.getElementById('statTotal').textContent = state.students.length;
-      document.getElementById('statPresent').textContent = state.students.filter(s => s.attendance === "حاضر").length;
-      document.getElementById('statRecitations').textContent = state.recitations.length;
-
-      // Attendance list
-      document.getElementById('attendanceList').innerHTML = state.students.map(s => `
-        <div class="py-3 flex items-center justify-between gap-2">
-          <div>
-            <p class="font-bold text-sm">${s.name}</p>
-            <p class="text-xs text-slate-400">${s.level}</p>
-          </div>
-          <div class="flex gap-1.5">
-            <button onclick="setAttendance(${s.id}, 'حاضر')" class="px-3 py-1 rounded-lg text-xs font-bold ${s.attendance === 'حاضر' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}">حاضر</button>
-            <button onclick="setAttendance(${s.id}, 'غائب')" class="px-3 py-1 rounded-lg text-xs font-bold ${s.attendance === 'غائب' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'}">غائب</button>
-          </div>
-        </div>
-      `).join('');
-
-      // Student select & list
-      document.getElementById('recStudent').innerHTML = state.students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-      document.getElementById('studentsList').innerHTML = state.students.map(s => `
-        <div class="py-3 flex items-center justify-between">
-          <div>
-            <p class="font-bold text-sm">${s.name}</p>
-            <p class="text-xs text-slate-500">${s.level}</p>
-          </div>
-          <span class="font-mono text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 px-3 py-1 rounded-lg">${s.code}</span>
-        </div>
-      `).join('');
-
-      // Recitations history
-      document.getElementById('recitationHistory').innerHTML = state.recitations.map(r => {
-        const st = state.students.find(s => s.id === r.studentId);
-        return `
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-            <div>
-              <p class="font-bold text-xs text-emerald-900">${st ? st.name : 'طالب'} • ${r.type}</p>
-              <p class="text-xs text-slate-700 mt-0.5">سورة ${r.surah} (آية ${r.from} إلى ${r.to})</p>
-            </div>
-            <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-white border border-slate-200">${r.grade}</span>
-          </div>
-        `;
-      }).join('');
-
-      // Weekly report
-      const lines = state.students.map(s => {
-        const count = state.recitations.filter(r => r.studentId === s.id).length;
-        return `• ${s.name} (${s.code}): الحالة [${s.attendance}] - عدد السجلات: ${count}`;
-      });
-      document.getElementById('weeklyReportBox').textContent = `تقرير حلقة مِرقاة الأسبوعي
-التاريخ: ${new Date().toLocaleDateString('ar-SA')}
--------------------------
-${lines.join('
-')}`;
-    }
-
-    function copyWeeklyReport() {
-      navigator.clipboard.writeText(document.getElementById('weeklyReportBox').textContent);
-      alert("تم نسخ التقرير الأسبوعي بنجاح!");
-    }
-
-    function openFirebaseModal() {
-      document.getElementById('firebaseConfigInput').value = localStorage.getItem('mirqah_firebase') || '';
-      document.getElementById('firebaseModal').classList.remove('hidden');
-      document.getElementById('firebaseModal').classList.add('flex');
-    }
-
-    function closeFirebaseModal() {
-      document.getElementById('firebaseModal').classList.add('hidden');
-      document.getElementById('firebaseModal').classList.remove('flex');
-    }
-
-    function saveFirebaseConfig() {
-      const val = document.getElementById('firebaseConfigInput').value.trim();
-      if (val) {
-        localStorage.setItem('mirqah_firebase', val);
-        document.getElementById('syncStatusBadge').textContent = "☁️ متصل بالسحابة";
-      }
-      closeFirebaseModal();
-    }
-
-    init();
-  </script>
 </body>
 </html>
