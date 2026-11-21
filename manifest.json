@@ -1,0 +1,10 @@
+{
+  "name": "مِرقاة - متابعة حلقات القرآن الكريم",
+  "short_name": "مِرقاة",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#065f46",
+  "theme_color": "#065f46",
+  "dir": "rtl",
+  "lang": "ar"
+}

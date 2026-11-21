@@ -1,0 +1,8 @@
+{
+  "appId": "com.mirqah.app",
+  "appName": "مِرقاة",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
